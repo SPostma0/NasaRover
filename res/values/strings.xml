@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">NASA\'s Rovers</string>
+    <string name="loading">Loading resources...</string>
+    <string name="imageID" translatable="false">Image ID:</string>
+</resources>
