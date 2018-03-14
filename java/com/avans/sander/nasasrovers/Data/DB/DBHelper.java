@@ -9,23 +9,15 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Hashtable;
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
-
-import com.avans.sander.nasasrovers.Data.API.APIHelper;
-import com.avans.sander.nasasrovers.Data.API.ASyncGetDataSet;
 import com.avans.sander.nasasrovers.Data.API.OnDataSetAvail;
 import com.avans.sander.nasasrovers.Domain.Picture;
 
 public class DBHelper extends SQLiteOpenHelper {
 
+    ////////////////////DB GLOBALS///////////////////////////
     private static final String TAG = DBHelper.class.getSimpleName();
 
     private static final String DATABASE_NAME = "NasaRover.db";
@@ -43,14 +35,22 @@ public class DBHelper extends SQLiteOpenHelper {
     public DBHelper(Context context) {
         super(context, DATABASE_NAME , null, DB_V);
         Log.d(TAG, "DBHelper: Constructor called");
-        this.listener =(OnDataSetAvail) context;
-        listener.OnDataSetAvail(getAllPhotos());
+
+            this.listener =(OnDataSetAvail) context;
     }
+
+    public DBHelper(Context context, boolean input) {
+        super(context, DATABASE_NAME , null, DB_V);
+        Log.d(TAG, "DBHelper: Constructor called");
+    }
+
+
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+
         Log.d(TAG, "onCreate: called");
-        db.execSQL(            //////Maak tabel aan
+        db.execSQL(            //////Maak tabel aan, 1st run of update
                 "CREATE TABLE "     +   PHOTOS_TABLE_NAME             +" "                                        +
                         "( `"       +   PHOTOS_COLUMN_ID              +"` INTEGER PRIMARY KEY AUTOINCREMENT, "    +
                         "`"         +   PHOTOS_COLUMN_PHOTO_ID        + "` INTEGER NOT NULL, "                    +
@@ -65,6 +65,7 @@ public class DBHelper extends SQLiteOpenHelper {
         Log.d(TAG, "onUpgrade: called");
         db.execSQL("DROP TABLE IF EXISTS " + PHOTOS_TABLE_NAME);
         onCreate(db);
+        close();
     }
 
     public boolean insertPhoto (Picture picture) {
@@ -82,7 +83,7 @@ public class DBHelper extends SQLiteOpenHelper {
         db.insert(  PHOTOS_TABLE_NAME,
                     null,
                     contentValues);
-
+        close();
         return true;
     }
 
@@ -112,7 +113,40 @@ public class DBHelper extends SQLiteOpenHelper {
             res.moveToNext();
 
         }
+        ///////////array met alle pics
+        close();
         return array_list;
     }
+
+    public ArrayList<Picture> getAllPhotos(String camShortName) {
+        Log.d(TAG, "getAllPhotosSubSet: called");
+        ArrayList<Picture> array_list = new ArrayList<Picture>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "SELECT * FROM "+PHOTOS_TABLE_NAME+" WHERE " + PHOTOS_COLUMN_SHORT_CAM_NAME + " = '" + camShortName + "';", null );
+        res.moveToFirst();
+
+        while(res.isAfterLast() == false){
+
+            Picture picture = new Picture();
+
+            //////////Putting values in the picture
+
+            picture.setId(res.getInt(res.getColumnIndex(PHOTOS_COLUMN_ID)));
+            picture.setShortCameraName(res.getString(res.getColumnIndex(PHOTOS_COLUMN_SHORT_CAM_NAME)));
+            picture.setImageID("" + res.getInt(res.getColumnIndex(PHOTOS_COLUMN_PHOTO_ID)));
+            picture.setcameraName(res.getString(res.getColumnIndex(PHOTOS_COLUMN_LONG_CAM_NAME)));
+            picture.setUrl(res.getString(res.getColumnIndex(PHOTOS_COLUMN_IMAGE_URL)));
+
+            array_list.add(picture);
+            res.moveToNext();
+
+        }
+        ///////////array met alle pics
+        close();
+        return array_list;
+    }
+
+
 
 }

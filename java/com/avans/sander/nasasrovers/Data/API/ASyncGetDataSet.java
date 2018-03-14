@@ -1,12 +1,12 @@
 package com.avans.sander.nasasrovers.Data.API;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.avans.sander.nasasrovers.Controller.MainActivity;
 import com.avans.sander.nasasrovers.Data.DB.DBHelper;
 import com.avans.sander.nasasrovers.Domain.Picture;
-import com.avans.sander.nasasrovers.Loading_Activity;
+import com.avans.sander.nasasrovers.Controller.Loading_Activity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,26 +27,59 @@ import java.util.Collections;
  * Created by Sander on 3/13/2018.
  */
 
-public class ASyncGetDataSet extends AsyncTask<String, Void, String>  {
+public class ASyncGetDataSet extends AsyncTask<String, Void, String> implements Runnable {
     private final String TAG = this.getClass().getSimpleName();
-    private OnDataSetAvail listener = null;
     private DBHelper dbHelper;
-    private Context context;
+    private Loading_Activity loadingActivity;
     private boolean dataSetAvailFromDb = false;
+    private String camName;
+    boolean restricted = false;
+    private MainActivity mainActivity;
 
-    public ASyncGetDataSet(OnDataSetAvail context) {
-        this.listener = context;
+
+    ///////////////initial getdata constructor//////////
+    public ASyncGetDataSet(Loading_Activity context) {
+        this.loadingActivity = context;
         Log.d(TAG, "ASyncGetDataSet: instantiated");
-        this.context = (Context) context;
+        this.loadingActivity =  context;
 
     }
+
+    /////////////////Restricted to certain cam///////////
+    public ASyncGetDataSet(MainActivity context, String camName) {
+        this.mainActivity = context;
+        Log.d(TAG, "ASyncGetDataSet: instantiated");
+        this.mainActivity =  context;
+
+        this.camName = camName;
+        this.restricted = true;
+    }
+
+
+    @Override
+    protected void onPreExecute() {
+        Log.d(TAG, "onPreExecute: call");
+        super.onPreExecute();
+
+        if (!restricted){
+        dbHelper = new DBHelper(loadingActivity);}else {
+            dbHelper = new DBHelper(mainActivity, false);
+        }
+
+
+        if (dbHelper.getAllPhotos().size() > 10) {
+            dataSetAvailFromDb = true;
+        }
+
+    }
+
 
     @Override
     protected String doInBackground(String... strings) {
         Log.d(TAG, "doInBackground: call");
 
 
-        if (!dataSetAvailFromDb) {
+        if (!dataSetAvailFromDb) {///if no db avail skip
             //////////////////Params////////////////////
             int returnCode = -1;
             InputStream inputStream = null;
@@ -82,7 +115,6 @@ public class ASyncGetDataSet extends AsyncTask<String, Void, String>  {
                     String returnValue = convertToString(inputStream);
 
 
-
                     return returnValue;
                 } else {
                     Log.d(TAG, "doInBackground: invalid response" + httpURLConnection.getResponseCode());
@@ -97,26 +129,10 @@ public class ASyncGetDataSet extends AsyncTask<String, Void, String>  {
             }
 
 
-
-
-
         }
         return null;
     }
 
-
-
-    @Override
-    protected void onPreExecute() {
-        Log.d(TAG, "onPreExecute: call");
-        super.onPreExecute();
-        dbHelper = new DBHelper(context);
-
-        if (dbHelper.getAllPhotos().size() > 10){
-            dataSetAvailFromDb = true;
-        }
-
-    }
 
     @Override
     protected void onPostExecute(String responseString) {
@@ -124,7 +140,7 @@ public class ASyncGetDataSet extends AsyncTask<String, Void, String>  {
         Log.d(TAG, "Response" + responseString);
         super.onPostExecute(responseString);
 
-        if (!dataSetAvailFromDb) {
+        if (!dataSetAvailFromDb) { ///if no db avail skip
             ArrayList<Picture> pictures = new ArrayList<>();
 
             if (responseString.equals("") || responseString == null) {
@@ -144,10 +160,11 @@ public class ASyncGetDataSet extends AsyncTask<String, Void, String>  {
 
                     picture.setImageID(object.getString("id"));
                     picture.setUrl(object.getString("img_src"));
-
                     picture.setcameraName(object.getJSONObject("camera").getString("full_name"));
                     picture.setRover(object.getJSONObject("rover").getString("name"));
                     picture.setShortCameraName(object.getJSONObject("camera").getString("name"));
+                    //////////////////////Make picture object from json object
+
 
                     pictures.add(picture);
 
@@ -156,13 +173,14 @@ public class ASyncGetDataSet extends AsyncTask<String, Void, String>  {
 
                 Collections.shuffle(pictures);
 
-                for (Picture p: pictures
-                     ) {dbHelper.insertPhoto(p);
+                for (Picture p : pictures
+                        ) {
+                    dbHelper.insertPhoto(p);
 
                 }
 
-
-                listener.OnDataSetAvail(pictures);
+                    //if all good notify the listener
+                loadingActivity.OnDataSetAvail(pictures);
 
 
             } catch (JSONException e) {
@@ -170,10 +188,24 @@ public class ASyncGetDataSet extends AsyncTask<String, Void, String>  {
             }
 
 
-        }else {
+        } else {
+                        ///if no db avail. Make the dbhelper create a db and populate it///
+            ArrayList<Picture> a = new ArrayList<>();
+
+            if (!restricted){
+            a = dbHelper.getAllPhotos();
+                loadingActivity.OnDataSetAvail(a);
+            }
+
+            if (restricted){
+            a = dbHelper.getAllPhotos(camName);
+                mainActivity.OnDataSubSetAvail(a, camName);
 
 
-            listener.OnDataSetAvail(dbHelper.getAllPhotos());
+            }
+
+                        //if all good notify the listener
+
 
 
         }
@@ -185,13 +217,15 @@ public class ASyncGetDataSet extends AsyncTask<String, Void, String>  {
     ///////////////////////////////////////////////////////
 
 
-    private String convertToString(InputStream inputStream) throws IOException{
+    private String convertToString(InputStream inputStream) throws IOException {
+        Log.d(TAG, "convertToString: call");
 
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
         String nextline;
         StringBuilder sb = new StringBuilder();
 
-        while ((nextline = bufferedReader.readLine()) != null ){
+        while ((nextline = bufferedReader.readLine()) != null) {
+
             sb.append(nextline);
         }
 
@@ -202,4 +236,8 @@ public class ASyncGetDataSet extends AsyncTask<String, Void, String>  {
 
     }
 
+    @Override
+    public void run() {
+        this.execute(APIHelper.APISTRING);
+    }
 }

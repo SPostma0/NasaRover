@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="cams">
+        <item>Select Cam</item>
+        <item>FHAZ</item>
+        <item>RHAZ</item>
+        <item>MAST</item>
+        <item>CHEMCAM</item>
+        <item>MAHLI</item>
+        <item>MARDI</item>
+        <item>NAVCAM</item>
+
+    </string-array>
+
+</resources>
+

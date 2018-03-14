@@ -1,35 +1,21 @@
-package com.avans.sander.nasasrovers;
+package com.avans.sander.nasasrovers.Controller;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.avans.sander.nasasrovers.Data.API.APIHelper;
 import com.avans.sander.nasasrovers.Data.API.ASyncGetDataSet;
 import com.avans.sander.nasasrovers.Data.API.OnDataSetAvail;
-import com.avans.sander.nasasrovers.Data.DB.DBHelper;
 import com.avans.sander.nasasrovers.Domain.Picture;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.avans.sander.nasasrovers.R;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class Loading_Activity extends AppCompatActivity implements OnDataSetAvail {
     private final String TAG = this.getClass().getSimpleName();
@@ -51,6 +37,8 @@ public class Loading_Activity extends AppCompatActivity implements OnDataSetAvai
     protected void onResume() {
         super.onResume();
 
+        ///////////////////after screen is built, start getting data///////////////
+
         delay.postDelayed(new ASyncGetDataSet(this),1000);
     }
 
@@ -60,9 +48,6 @@ public class Loading_Activity extends AppCompatActivity implements OnDataSetAvai
         this.pictures = pictures;
 
         Intent intent = new Intent(this, MainActivity.class);
-
-
-
         Bundle args = new Bundle();
 
         args.putSerializable("DATASET", pictures);
@@ -79,7 +64,7 @@ public class Loading_Activity extends AppCompatActivity implements OnDataSetAvai
 
 
         private String convertToString(InputStream inputStream) throws IOException {
-
+            Log.d(TAG, "convertToString: called");
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
             String nextline;
             StringBuilder sb = new StringBuilder();

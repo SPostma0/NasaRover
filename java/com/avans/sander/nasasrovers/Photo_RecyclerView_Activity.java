@@ -9,7 +9,6 @@ import android.util.Log;
 import android.view.Window;
 
 import com.avans.sander.nasasrovers.Domain.Picture;
-import com.avans.sander.nasasrovers.UI.OnClickForDetails;
 import com.avans.sander.nasasrovers.UI.PhotoViewAdapter;
 
 import java.io.Serializable;
