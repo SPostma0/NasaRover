@@ -13,14 +13,14 @@
         android:id="@+id/detail_image_button"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="@android:color/black"
         android:elevation="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@drawable/ic_launcher_background" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/detail_text_camera"
@@ -31,6 +31,9 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="TextView"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/detail_image_button"
         app:layout_constraintEnd_toEndOf="@+id/detail_image_button"
         app:layout_constraintHorizontal_bias="0.051"

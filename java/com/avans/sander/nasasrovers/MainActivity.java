@@ -11,6 +11,7 @@ import android.view.Window;
 import com.avans.sander.nasasrovers.Domain.Picture;
 import com.avans.sander.nasasrovers.UI.OnClickForDetails;
 import com.avans.sander.nasasrovers.UI.PhotoViewAdapter;
+import com.avans.sander.nasasrovers.UI.VariableScrollSpeedLinearLayoutManager;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public class MainActivity extends AppCompatActivity implements OnClickForDetails
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+
 
     private ArrayList<Picture> pictures;
 
@@ -45,8 +47,14 @@ public class MainActivity extends AppCompatActivity implements OnClickForDetails
         mRecyclerView = (RecyclerView) findViewById(R.id.RecyclerView);
         mRecyclerView.setHasFixedSize(true);
 
+
+
         mAdapter = new PhotoViewAdapter(pictures, this);
-        mLayoutManager = new LinearLayoutManager(this);
+
+
+        mLayoutManager = new VariableScrollSpeedLinearLayoutManager(this,5f);
+        mLayoutManager.setItemPrefetchEnabled(true);
+
 
 
 

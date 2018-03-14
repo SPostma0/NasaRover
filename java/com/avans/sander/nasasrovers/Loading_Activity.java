@@ -5,23 +5,27 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.avans.sander.nasasrovers.Data.API.APIHelper;
 import com.avans.sander.nasasrovers.Data.API.ASyncGetDataSet;
 import com.avans.sander.nasasrovers.Data.API.OnDataSetAvail;
+import com.avans.sander.nasasrovers.Data.DB.DBHelper;
 import com.avans.sander.nasasrovers.Domain.Picture;
 
 import java.util.ArrayList;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class Loading_Activity extends AppCompatActivity implements OnDataSetAvail {
     private final String TAG = this.getClass().getSimpleName();
 
     private ArrayList<Picture> pictures;
 
+    private ASyncGetDataSet aSyncGetDataSet;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_loading);
-
-        loadResources();
     }
 
 
@@ -42,15 +46,21 @@ public class Loading_Activity extends AppCompatActivity implements OnDataSetAvai
         startActivity(intent);
     }
 
-    private void loadResources() {
-        Log.d(TAG, "loadResources: called");
-        ASyncGetDataSet aSyncGetDataSet = new ASyncGetDataSet(this);
 
-        String apiString = "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&api_key=cuyR1dGklGiBbrzuybKB0FVVOl2aGqrsJpKQZ0n8";
-
-        aSyncGetDataSet.execute(apiString);
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadResources();
     }
 
+    private void loadResources() {
+        Log.d(TAG, "loadResources: called");
+
+
+
+        this.aSyncGetDataSet = new ASyncGetDataSet(this);
+        aSyncGetDataSet.execute(APIHelper.APISTRING);
+
+    }
 
 }

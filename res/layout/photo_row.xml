@@ -17,12 +17,13 @@
         android:id="@+id/listview_row_image"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:scaleType="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.621"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_launcher_background" />
+        app:srcCompat="@android:drawable/ic_menu_rotate" />
 
     <TextView
         android:id="@+id/listview_row_imageid"

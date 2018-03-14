@@ -17,16 +17,13 @@ public class DetailViewActivity extends AppCompatActivity implements View.OnClic
     private final String TAG = this.getClass().getSimpleName();
 
     private Picture picture;
-
     private TextView cameraName;
     private ImageButton image;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_detail_view);
-
         Bundle bundle = getIntent().getExtras().getBundle("PIC");
 
         this.picture = (Picture) bundle.getSerializable("PIC");
@@ -48,7 +45,7 @@ public class DetailViewActivity extends AppCompatActivity implements View.OnClic
 
     @Override
     public void onPictureAvailable(Bitmap picture) {
-        image.setScaleType(ImageView.ScaleType.FIT_XY);
+        image.setScaleType(ImageView.ScaleType.FIT_CENTER);
         image.setImageBitmap(picture);
         this.cameraName.setText(this.picture.getcameraName());
     }

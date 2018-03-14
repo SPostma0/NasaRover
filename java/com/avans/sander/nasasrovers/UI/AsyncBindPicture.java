@@ -32,10 +32,11 @@ public class AsyncBindPicture extends AsyncTask<String, Void, String>{
     protected String doInBackground(String... strings) {
 
         Log.d(TAG, "doInBackground: instanced");
+
         try{
             URL url = new URL(picture.getUrl());
             this.bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-            Log.d(TAG, "doInBackground: image captured");
+            Log.d(TAG, "doInBackground: image pulled");
         }catch (Exception e){
             e.getLocalizedMessage();
         }

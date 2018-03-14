@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.avans.sander.nasasrovers.Data.DB.DBHelper;
 import com.avans.sander.nasasrovers.Domain.Picture;
 import com.avans.sander.nasasrovers.Loading_Activity;
 
@@ -29,11 +30,14 @@ import java.util.Collections;
 public class ASyncGetDataSet extends AsyncTask<String, Void, String>  {
     private final String TAG = this.getClass().getSimpleName();
     private OnDataSetAvail listener = null;
+    private DBHelper dbHelper;
+    private Context context;
+    private boolean dataSetAvailFromDb = false;
 
-    public ASyncGetDataSet(Loading_Activity context) {
+    public ASyncGetDataSet(OnDataSetAvail context) {
         this.listener = context;
         Log.d(TAG, "ASyncGetDataSet: instantiated");
-
+        this.context = (Context) context;
 
     }
 
@@ -41,72 +45,77 @@ public class ASyncGetDataSet extends AsyncTask<String, Void, String>  {
     protected String doInBackground(String... strings) {
         Log.d(TAG, "doInBackground: call");
 
-        //////////////////Params////////////////////
-        int returnCode = -1;
-        InputStream inputStream = null;
-        String response = "";
+
+        if (!dataSetAvailFromDb) {
+            //////////////////Params////////////////////
+            int returnCode = -1;
+            InputStream inputStream = null;
+            String response = "";
+
+
+            //////////////////HTTP SETUP////////////////
+            try {
+                Log.d(TAG, "doInBackground: Setting up HTTP connection");
+
+                URLConnection urlConnection = new URL(strings[0]).openConnection();
+
+                if (!(urlConnection instanceof HttpURLConnection)) {
+                    return null;
+                }
+
+                HttpURLConnection httpURLConnection = (HttpURLConnection) urlConnection;
+                httpURLConnection.setAllowUserInteraction(false);
+                httpURLConnection.setInstanceFollowRedirects(true);
+                httpURLConnection.setRequestMethod("GET");
+
+
+                ////////////GetData///////////////////
+                httpURLConnection.connect();
+                if (httpURLConnection.getResponseCode() == 200) {
+                    Log.d(TAG, "doInBackground: GetData succesfull");
+
+
+                    inputStream = httpURLConnection.getInputStream();
+
+                    Log.d(TAG, "doInBackground: Converting page to string");
+
+                    String returnValue = convertToString(inputStream);
 
 
 
+                    return returnValue;
+                } else {
+                    Log.d(TAG, "doInBackground: invalid response" + httpURLConnection.getResponseCode());
+                }
 
 
-        //////////////////HTTP SETUP////////////////
-        try{
-            Log.d(TAG, "doInBackground: Setting up HTTP connection");
+            } catch (MalformedURLException mue) {
+                Log.d(TAG, "doInBackground: Error in URL" + mue.getLocalizedMessage());
 
-            URLConnection urlConnection = new URL(strings[0]).openConnection();
-
-            if (!(urlConnection instanceof HttpURLConnection)){
-                return null;
+            } catch (IOException ioe) {
+                Log.d(TAG, "doInBackground: Error on connection" + ioe.getLocalizedMessage());
             }
 
-            HttpURLConnection httpURLConnection = (HttpURLConnection) urlConnection;
-            httpURLConnection.setAllowUserInteraction(false);
-            httpURLConnection.setInstanceFollowRedirects(true);
-            httpURLConnection.setRequestMethod("GET");
 
 
-            ////////////GetData///////////////////
-            httpURLConnection.connect();
-            if (httpURLConnection.getResponseCode() == 200){
-                Log.d(TAG, "doInBackground: GetData succesfull");
 
 
-                inputStream = httpURLConnection.getInputStream();
-
-                Log.d(TAG, "doInBackground: Converting page to string");
-
-                String returnValue = convertToString(inputStream);
-
-                inputStream = null;
-                httpURLConnection = null;
-                urlConnection = null;
-
-                return returnValue;
-            }else {
-                Log.d(TAG, "doInBackground: invalid response" + httpURLConnection.getResponseCode());
-            }
-
-
-        }catch (MalformedURLException mue){
-            Log.d(TAG, "doInBackground: Error in URL" + mue.getLocalizedMessage());
-
-        }catch (IOException ioe){
-            Log.d(TAG, "doInBackground: Error on connection" + ioe.getLocalizedMessage());
         }
-
-
-
         return null;
-
-
-
     }
+
+
 
     @Override
     protected void onPreExecute() {
         Log.d(TAG, "onPreExecute: call");
         super.onPreExecute();
+        dbHelper = new DBHelper(context);
+
+        if (dbHelper.getAllPhotos().size() > 10){
+            dataSetAvailFromDb = true;
+        }
+
     }
 
     @Override
@@ -114,20 +123,21 @@ public class ASyncGetDataSet extends AsyncTask<String, Void, String>  {
         Log.d(TAG, "onPostExecute: call");
         Log.d(TAG, "Response" + responseString);
         super.onPostExecute(responseString);
-        ArrayList<Picture> pictures = new ArrayList<>();
 
-        if (responseString.equals("") || responseString == null){
-            Log.d(TAG, "onPostExecute: Empty response");
-            return;
-        }
+        if (!dataSetAvailFromDb) {
+            ArrayList<Picture> pictures = new ArrayList<>();
 
-        try{
-            JSONObject jsonObject = new JSONObject(responseString);
-            JSONArray responseArray = jsonObject.getJSONArray("photos");
+            if (responseString.equals("") || responseString == null) {
+                Log.d(TAG, "onPostExecute: Empty response");
+                return;
+            }
+
+            try {
+                JSONObject jsonObject = new JSONObject(responseString);
+                JSONArray responseArray = jsonObject.getJSONArray("photos");
 
 
-
-            for(int i = 0; i < responseArray.length(); i++){
+                for (int i = 0; i < responseArray.length(); i++) {
                     JSONObject object = responseArray.getJSONObject(i);
 
                     Picture picture = new Picture();
@@ -141,20 +151,32 @@ public class ASyncGetDataSet extends AsyncTask<String, Void, String>  {
 
                     pictures.add(picture);
 
-                Log.d(TAG, "onPostExecute: new picture stats from: " + picture.getRover() + picture.getImageID());
+                    Log.d(TAG, "onPostExecute: new picture stats from: " + picture.getRover() + picture.getImageID());
+                }
+
+                Collections.shuffle(pictures);
+
+                for (Picture p: pictures
+                     ) {dbHelper.insertPhoto(p);
+
+                }
+
+
+                listener.OnDataSetAvail(pictures);
+
+
+            } catch (JSONException e) {
+                Log.d(TAG, "onPostExecute: JSON Expection" + e.getLocalizedMessage());
             }
 
-            Collections.shuffle(pictures);
-            listener.OnDataSetAvail(pictures);
+
+        }else {
 
 
-        }catch (JSONException e){
-            Log.d(TAG, "onPostExecute: JSON Expection" + e.getLocalizedMessage());
+            listener.OnDataSetAvail(dbHelper.getAllPhotos());
+
+
         }
-
-
-
-
     }
 
 
