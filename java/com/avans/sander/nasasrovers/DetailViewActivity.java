@@ -1,5 +1,6 @@
 package com.avans.sander.nasasrovers;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -26,27 +27,29 @@ public class DetailViewActivity extends AppCompatActivity implements View.OnClic
 
         setContentView(R.layout.activity_detail_view);
 
-        this.picture = new Picture();
+        Bundle bundle = getIntent().getExtras().getBundle("PIC");
 
-        this.picture.setUrl(savedInstanceState.getString("URL"));
-        this.picture.setcameraName(savedInstanceState.getString("CAMNAME"));
+        this.picture = (Picture) bundle.getSerializable("PIC");
+
+
 
         cameraName = (TextView) findViewById(R.id.detail_text_camera) ;
         image = (ImageButton) findViewById(R.id.detail_image_button);
 
         image.setOnClickListener(this);
         AsyncBindPicture asyncBindPicture = new AsyncBindPicture(this, picture);
+        asyncBindPicture.execute();
     }
 
     @Override
     public void onClick(View view) {
-        finishActivity(-1);
+        super.onBackPressed();
     }
 
     @Override
     public void onPictureAvailable(Bitmap picture) {
-
+        image.setScaleType(ImageView.ScaleType.FIT_XY);
         image.setImageBitmap(picture);
-
+        this.cameraName.setText(this.picture.getcameraName());
     }
 }

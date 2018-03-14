@@ -21,8 +21,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Rover_Selection_Activity" />
-        <activity android:name=".Photo_RecyclerView_Activity" />
+        <activity android:name=".MainActivity" />
         <activity android:name=".DetailViewActivity"></activity>
     </application>
 

@@ -1,30 +1,22 @@
 package com.avans.sander.nasasrovers.UI;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 
-import com.avans.sander.nasasrovers.DetailViewActivity;
 import com.avans.sander.nasasrovers.Domain.Picture;
-import com.avans.sander.nasasrovers.Photo_RecyclerView_Activity;
 import com.avans.sander.nasasrovers.R;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.zip.Inflater;
 
 /**
  * Created by Sander on 3/13/2018.
@@ -59,7 +51,7 @@ public class PhotoViewAdapter extends RecyclerView.Adapter<PhotoViewAdapter.View
         View view = inflater.inflate(R.layout.photo_row, parent, false);
 
         this.i++;
-        return new ViewHolder(view, i, pictureArrayList, context);
+        return new ViewHolder(view, pictureArrayList.get(i));
     }
 
     @Override
@@ -82,28 +74,28 @@ public class PhotoViewAdapter extends RecyclerView.Adapter<PhotoViewAdapter.View
         private TextView IDView;
         private ImageView imageView;
         private String url;
-        private Context context;
         private Picture picture;
 
 
 
-        public ViewHolder(View itemView,int i, ArrayList<Picture> pictures, Context context)  {
+        public ViewHolder(View itemView)  {
             super(itemView);
 
             this.view = itemView;
             this.IDView = (TextView) view.findViewById(R.id.listview_row_imageid);
+
             this.imageView = (ImageView) view.findViewById(R.id.listview_row_image);
             imageView.setOnClickListener(this);
-            this.IDView.setText(pictures.get(i).getImageID());
-            this.context = context;
 
-            Log.d(TAG, "ViewHolder: generated" + pictures.get(i).getImageID());
+            this.IDView.setText(this.picture.getImageID());
 
-            picture = pictureArrayList.get(i);
+            Log.d(TAG, "ViewHolder: generated" + this.picture.getImageID());
 
-            AsyncBindPicture asyncBindPicture = new AsyncBindPicture(this,pictures.get(i));
+            AsyncBindPicture asyncBindPicture = new AsyncBindPicture(this, this.picture);
             asyncBindPicture.execute();
         }
+
+
 
         @Override
         public void onPictureAvailable(Bitmap picture) {
@@ -115,8 +107,12 @@ public class PhotoViewAdapter extends RecyclerView.Adapter<PhotoViewAdapter.View
         @Override
         public void onClick(View view) {
 
-            ((OnClickForDetails) context).OnCliCkForDetails(picture);
+            ((OnClickForDetails) context).OnCliCkForDetails(this.picture);
 
+        }
+
+        public Picture getPicture() {
+            return picture;
         }
     }
 

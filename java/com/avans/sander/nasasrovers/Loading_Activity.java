@@ -30,7 +30,9 @@ public class Loading_Activity extends AppCompatActivity implements OnDataSetAvai
         Log.d(TAG, "OnDataSetAvail: called: DATASET SIZE: " + pictures.size());
         this.pictures = pictures;
 
-        Intent intent = new Intent(this, Photo_RecyclerView_Activity.class);
+        Intent intent = new Intent(this, MainActivity.class);
+
+
 
         Bundle args = new Bundle();
 
